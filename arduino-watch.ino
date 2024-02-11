@@ -29,7 +29,7 @@ void loop()
     }
 }
 
-uint8_t* shfitToRight(uint8_t arr[8], int n)
+uint8_t* shiftToRight(uint8_t arr[8], int n)
 {
     uint8_t* result = new uint8_t[8];
     for (int i = 0; i < 8; i++) {
@@ -67,14 +67,14 @@ void setHours(DateTime time)
 
     if (count == 1)
     {
-        uint8_t* hour_d1 = shfitToRight(SYMBOLS[time.twelveHour()], 4);
+        uint8_t* hour_d1 = shiftToRight(SYMBOLS[time.twelveHour()], 4);
         MATRIX_CASCADE[0].set(hour_d1);
         delete hour_d1;
     }
     else if (count == 2) 
     {
-        uint8_t* hour_d1 = shfitToRight(SYMBOLS[SYMBOL_1], 1);
-        uint8_t* hour_d2 = shfitToRight(SYMBOLS[time.twelveHour() % 10], 4);
+        uint8_t* hour_d1 = shiftToRight(SYMBOLS[SYMBOL_1], 1);
+        uint8_t* hour_d2 = shiftToRight(SYMBOLS[time.twelveHour() % 10], 4);
         uint8_t* hour = mergeArray(hour_d1, hour_d2);
         delete hour_d1;
         delete hour_d2;
@@ -87,19 +87,19 @@ void setMinutesAndM(DateTime time)
 {
     uint8_t* symbol_f;
     if (time.isPM())
-        symbol_f = shfitToRight(SYMBOLS[SYMBOL_P], 5);
+        symbol_f = shiftToRight(SYMBOLS[SYMBOL_P], 5);
     else 
-        symbol_f = shfitToRight(SYMBOLS[SYMBOL_A], 5);
+        symbol_f = shiftToRight(SYMBOLS[SYMBOL_A], 5);
 
     int count = 1;
     if (time.minute() >= 10) count = 2;
 
     if (count == 1)
     {
-        uint8_t* min_d1 = shfitToRight(SYMBOLS[SYMBOL_0], 3);
+        uint8_t* min_d1 = shiftToRight(SYMBOLS[SYMBOL_0], 3);
         MATRIX_CASCADE[1].set(min_d1);
         delete min_d1;
-        uint8_t* min_d2 = shfitToRight(SYMBOLS[time.minute()], 0);
+        uint8_t* min_d2 = shiftToRight(SYMBOLS[time.minute()], 0);
         uint8_t* matrix_2 = mergeArray(min_d2, symbol_f);
         delete min_d2;
         delete symbol_f;
@@ -114,17 +114,17 @@ void setMinutesAndM(DateTime time)
             shift_count = 5;
         else
             shift_count = 3;
-        uint8_t* min_d1 = shfitToRight(SYMBOLS[min_d1_index], shift_count);
+        uint8_t* min_d1 = shiftToRight(SYMBOLS[min_d1_index], shift_count);
         MATRIX_CASCADE[1].set(min_d1);
         delete min_d1;
-        uint8_t* min_d2 = shfitToRight(SYMBOLS[time.minute() % 10], 0);
+        uint8_t* min_d2 = shiftToRight(SYMBOLS[time.minute() % 10], 0);
         uint8_t* matrix_2 = mergeArray(min_d2, symbol_f);
         delete min_d2;
         delete symbol_f;
         MATRIX_CASCADE[2].set(matrix_2);
         delete matrix_2;
     }
-    uint8_t* symbol_m = shfitToRight(SYMBOLS[SYMBOL_M], 1);
+    uint8_t* symbol_m = shiftToRight(SYMBOLS[SYMBOL_M], 1);
     MATRIX_CASCADE[3].set(symbol_m);
     delete symbol_m;
 }

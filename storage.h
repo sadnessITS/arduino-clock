@@ -30,9 +30,9 @@ unsigned long timing;
 enum class Mode {ShowTime, EditTime};
 
 // BLOCK: objects
-MatrixCascade<CASCADE_SIZE> MATRIX_CASCADE(4, 8, 6);
+MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
 RTC_DS3231 rtc;
-extern const uint8_t SYMBOLS[13][8] = 
+extern const uint8_t symbols[13][8] = 
 {
     {
         0b11110000,

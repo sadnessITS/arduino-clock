@@ -23,10 +23,21 @@ void loop()
 {
     DateTime now = getTime();
     
-    if (millis() - timing > 1000)
+    Serial.println(getBrightness());
+    matrix_cascade.setIntensity(getBrightness());
+    
+    switch(mode)
     {
-        timing = millis();
-        setTime(now);
+        case Mode::ShowTime: 
+            if (millis() - timing > 1000)
+            {
+                setTime(now);
+                timing = millis();
+            } break;
+        case Mode::EditTime: setTime(now); break;
+        case Mode::ShowTemperature: setTime(now); break;
+        case Mode::ShowHumidity: setTime(now); break;
+        case Mode::ShowPressure: setTime(now); break;
     }
 }
 
@@ -139,4 +150,16 @@ void setColon(DateTime time)
                 matrix_cascade[1].set(col, {0b00000000});
         colInd++;
     }
+}
+
+int getBrightness()
+{
+    int current_encoder_value = brightness_encoder.read() / 4;
+    if (current_encoder_value > previous_encoder_value)
+        brightness += 1;
+    else if (current_encoder_value < previous_encoder_value)
+        brightness -= 1;
+    brightness = constrain(brightness, 1, 15);
+    previous_encoder_value = current_encoder_value;
+    return brightness;
 }

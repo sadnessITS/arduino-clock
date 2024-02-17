@@ -4,6 +4,7 @@
 //BLOCK: imports
 #include "MatrixCascade.h"
 #include "RTClib.h"
+#include <Encoder.h>
 
 // BLOCK: symbols
 #define SYMBOL_0 0
@@ -20,18 +21,23 @@
 #define SYMBOL_P 11
 #define SYMBOL_M 12
 
+
+//BLOCK: enum
+enum class Mode {ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure};
+
 // BLOCK: const
 #define CASCADE_SIZE 4
 
 // BLOCK: variable
 unsigned long timing;
-
-//BLOCK: enum
-enum class Mode {ShowTime, EditTime};
+int previous_encoder_value = 0;
+int brightness = 8;
+Mode mode = Mode::ShowTime;
 
 // BLOCK: objects
 MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
 RTC_DS3231 rtc;
+Encoder brightness_encoder(10, 11);
 extern const uint8_t symbols[13][8] = 
 {
     {

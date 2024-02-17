@@ -28,7 +28,7 @@ void loop()
     
     matrix_cascade.setIntensity(getBrightness());
 
-    mode = Mode::ShowTemperature;
+    mode = Mode::ShowHumidity;
     
     switch(mode)
     {
@@ -41,7 +41,7 @@ void loop()
             } break;
         case Mode::EditTime: showTime(now); break;
         case Mode::ShowTemperature: showTemperature(temperatureSensor); break;
-        case Mode::ShowHumidity: showTime(now); break;
+        case Mode::ShowHumidity: showHumidity(humiditySensor); break;
         case Mode::ShowPressure: showTime(now); break;
     }
 }
@@ -179,11 +179,45 @@ void showTemperature(sensors_event_t temperatureSensor)
         matrix_cascade[1].set(temperature_d2);
         delete temperature_d2;
     }
-    uint8_t* degree = shiftToRight(symbols[SYMBOL_DEGREE], 0);
-    uint8_t* letter_c = shiftToRight(symbols[SYMBOL_C], 4);
-    uint8_t* celsius = mergeArray(degree, letter_c);
-    delete degree;
-    delete letter_c;
+    uint8_t* celsius = shiftToRight(symbols[SYMBOL_CELSIUS], 0);
     matrix_cascade[2].set(celsius);
     delete celsius;
+}
+
+void showHumidity(sensors_event_t humiditySensor)
+{
+    int countDigitHumidity = 1;
+    if ((int)humiditySensor.relative_humidity >= 10) countDigitHumidity = 2;
+    if ((int)humiditySensor.relative_humidity == 100) countDigitHumidity = 3;
+
+    if (countDigitHumidity == 1)
+    {
+        uint8_t* digit_d1 = shiftToRight(symbols[(int)humiditySensor.relative_humidity], 1);
+        matrix_cascade[1].set(digit_d1);
+        delete digit_d1;
+    }
+    else if (countDigitHumidity == 2)
+    {
+        uint8_t* digit_d1 = shiftToRight(symbols[(int)humiditySensor.relative_humidity / 10], 4);
+        matrix_cascade[0].set(digit_d1);
+        delete digit_d1;
+        uint8_t* digit_d2 = shiftToRight(symbols[(int)humiditySensor.relative_humidity % 10], 1);
+        matrix_cascade[1].set(digit_d2);
+        delete digit_d2;
+    }
+    else if (countDigitHumidity == 3)
+    {
+        uint8_t* digit_d1 = shiftToRight(symbols[SYMBOL_1], 1);
+        uint8_t* digit_d2 = shiftToRight(symbols[(int)humiditySensor.relative_humidity / 10], 4);
+        uint8_t* merged_d1_d2 = mergeArray(digit_d1, digit_d2);
+        delete digit_d1;
+        delete digit_d2;
+        matrix_cascade[0].set(merged_d1_d2);
+        uint8_t* digit_d3 = shiftToRight(symbols[(int)humiditySensor.relative_humidity % 10], 1);
+        matrix_cascade[1].set(digit_d3);
+        delete digit_d3;
+    }
+    uint8_t* percentage = shiftToRight(symbols[SYMBOL_PERCENTAGE], 0);
+    matrix_cascade[2].set(percentage);
+    delete percentage;
 }

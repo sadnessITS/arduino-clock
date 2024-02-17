@@ -22,8 +22,8 @@
 #define SYMBOL_A 10
 #define SYMBOL_P 11
 #define SYMBOL_M 12
-#define SYMBOL_DEGREE 13
-#define SYMBOL_C 14
+#define SYMBOL_CELSIUS 13
+#define SYMBOL_PERCENTAGE 14
 
 
 //BLOCK: enum 
@@ -177,24 +177,24 @@ extern const uint8_t symbols[15][8] =
     },
     {
         0b01000000,
-        0b10100000,
-        0b01000000,
-        0b00000000,
-        0b00000000,
-        0b00000000,
-        0b00000000,
+        0b10100110,
+        0b01001001,
+        0b00001000,
+        0b00001000,
+        0b00001001,
+        0b00000110,
         0b00000000
     },
     {
-        0b00000000,
-        0b01100000,
-        0b10010000,
-        0b10000000,
-        0b10000000,
-        0b10010000,
-        0b01100000,
+        0b01000000,
+        0b10100100,
+        0b01001000,
+        0b00010000,
+        0b00100100,
+        0b01001010,
+        0b00000100,
         0b00000000
-    }
+    },
 };
 
 #endif

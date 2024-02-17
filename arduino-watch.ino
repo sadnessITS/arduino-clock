@@ -3,6 +3,7 @@
 void setup() 
 {
     Serial.begin(57600);
+    sensor.begin();
 
     #ifndef ESP8266
         while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -22,22 +23,26 @@ void setup()
 void loop() 
 {
     DateTime now = getTime();
+    sensors_event_t humiditySensor, temperatureSensor;
+    sensor.getEvent(&humiditySensor, &temperatureSensor);
     
-    Serial.println(getBrightness());
     matrix_cascade.setIntensity(getBrightness());
+
+    mode = Mode::ShowTemperature;
     
     switch(mode)
     {
         case Mode::ShowTime: 
             if (millis() - timing > 1000)
             {
-                setTime(now);
+                showTime(now);
+                setColon(now);
                 timing = millis();
             } break;
-        case Mode::EditTime: setTime(now); break;
-        case Mode::ShowTemperature: setTime(now); break;
-        case Mode::ShowHumidity: setTime(now); break;
-        case Mode::ShowPressure: setTime(now); break;
+        case Mode::EditTime: showTime(now); break;
+        case Mode::ShowTemperature: showTemperature(temperatureSensor); break;
+        case Mode::ShowHumidity: showTime(now); break;
+        case Mode::ShowPressure: showTime(now); break;
     }
 }
 
@@ -62,25 +67,25 @@ DateTime getTime()
     return rtc.now();
 }
 
-void setTime(DateTime time)
+void showTime(DateTime time) 
 {
-    setHours(time);
-    setMinutesAndM(time);
-    setColon(time);
-}
+    uint8_t* symbol_f;
+    int countDigitHours = 1;
+    int countDigitMinutes = 1;
+    if (time.twelveHour() >= 10) countDigitHours = 2;
+    if (time.minute() >= 10) countDigitMinutes = 2;
+    if (time.isPM())
+        symbol_f = shiftToRight(symbols[SYMBOL_P], 5);
+    else 
+        symbol_f = shiftToRight(symbols[SYMBOL_A], 5);
 
-void setHours(DateTime time) 
-{
-    int count = 1;
-    if (time.twelveHour() >= 10) count = 2;
-
-    if (count == 1)
+    if (countDigitHours == 1)
     {
         uint8_t* hour_d1 = shiftToRight(symbols[time.twelveHour()], 4);
         matrix_cascade[0].set(hour_d1);
         delete hour_d1;
     }
-    else if (count == 2) 
+    else if (countDigitHours == 2) 
     {
         uint8_t* hour_d1 = shiftToRight(symbols[SYMBOL_1], 1);
         uint8_t* hour_d2 = shiftToRight(symbols[time.twelveHour() % 10], 4);
@@ -90,20 +95,7 @@ void setHours(DateTime time)
         matrix_cascade[0].set(hour);
         delete hour;
     }
-}
-
-void setMinutesAndM(DateTime time)
-{
-    uint8_t* symbol_f;
-    if (time.isPM())
-        symbol_f = shiftToRight(symbols[SYMBOL_P], 5);
-    else 
-        symbol_f = shiftToRight(symbols[SYMBOL_A], 5);
-
-    int count = 1;
-    if (time.minute() >= 10) count = 2;
-
-    if (count == 1)
+    if (countDigitMinutes == 1)
     {
         uint8_t* min_d1 = shiftToRight(symbols[SYMBOL_0], 3);
         matrix_cascade[1].set(min_d1);
@@ -115,7 +107,7 @@ void setMinutesAndM(DateTime time)
         matrix_cascade[2].set(matrix_2);
         delete matrix_2;
     }
-    else if (count == 2)
+    else if (countDigitMinutes == 2)
     {
         int min_d1_index = time.minute() / 10;
         int shift_count = 0;
@@ -162,4 +154,36 @@ int getBrightness()
     brightness = constrain(brightness, 1, 15);
     previous_encoder_value = current_encoder_value;
     return brightness;
+}
+
+void showTemperature(sensors_event_t temperatureSensor)
+{
+    int countDigitTemperature = 1;
+    if ((int)temperatureSensor.temperature >= 10) countDigitTemperature = 2;
+
+    if (countDigitTemperature == 1)
+    {
+        uint8_t* temperature_d1 = shiftToRight(symbols[SYMBOL_0], 4);
+        matrix_cascade[0].set(temperature_d1);
+        delete temperature_d1;
+        uint8_t* temperature_d2 = shiftToRight(symbols[(int)temperatureSensor.temperature], 1);
+        matrix_cascade[1].set(temperature_d2);
+        delete temperature_d2;
+    }
+    else
+    {
+        uint8_t* temperature_d1 = shiftToRight(symbols[(int)temperatureSensor.temperature / 10], 4);
+        matrix_cascade[0].set(temperature_d1);
+        delete temperature_d1;
+        uint8_t* temperature_d2 = shiftToRight(symbols[(int)temperatureSensor.temperature % 10], 1);
+        matrix_cascade[1].set(temperature_d2);
+        delete temperature_d2;
+    }
+    uint8_t* degree = shiftToRight(symbols[SYMBOL_DEGREE], 0);
+    uint8_t* letter_c = shiftToRight(symbols[SYMBOL_C], 4);
+    uint8_t* celsius = mergeArray(degree, letter_c);
+    delete degree;
+    delete letter_c;
+    matrix_cascade[2].set(celsius);
+    delete celsius;
 }

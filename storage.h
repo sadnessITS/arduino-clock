@@ -2,9 +2,11 @@
 #define STORAGE_H
 
 //BLOCK: imports
+#include <Adafruit_AHTX0.h>
 #include "MatrixCascade.h"
-#include "RTClib.h"
 #include <Encoder.h>
+#include <Wire.h>
+#include "RTClib.h"
 
 // BLOCK: symbols
 #define SYMBOL_0 0
@@ -20,9 +22,11 @@
 #define SYMBOL_A 10
 #define SYMBOL_P 11
 #define SYMBOL_M 12
+#define SYMBOL_DEGREE 13
+#define SYMBOL_C 14
 
 
-//BLOCK: enum
+//BLOCK: enum 
 enum class Mode {ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure};
 
 // BLOCK: const
@@ -37,8 +41,9 @@ Mode mode = Mode::ShowTime;
 // BLOCK: objects
 MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
 RTC_DS3231 rtc;
+Adafruit_AHTX0 sensor;
 Encoder brightness_encoder(10, 11);
-extern const uint8_t symbols[13][8] = 
+extern const uint8_t symbols[15][8] = 
 {
     {
         0b11110000,
@@ -168,6 +173,26 @@ extern const uint8_t symbols[13][8] =
         0b11011000,
         0b10101000,
         0b10001000,
+        0b00000000
+    },
+    {
+        0b01000000,
+        0b10100000,
+        0b01000000,
+        0b00000000,
+        0b00000000,
+        0b00000000,
+        0b00000000,
+        0b00000000
+    },
+    {
+        0b00000000,
+        0b01100000,
+        0b10010000,
+        0b10000000,
+        0b10000000,
+        0b10010000,
+        0b01100000,
         0b00000000
     }
 };

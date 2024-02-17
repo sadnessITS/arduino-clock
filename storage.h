@@ -2,10 +2,11 @@
 #define STORAGE_H
 
 //BLOCK: imports
-#include <Adafruit_AHTX0.h>
 #include "MatrixCascade.h"
 #include <Encoder.h>
 #include <Wire.h>
+#include <Adafruit_AHTX0.h>
+#include <Adafruit_BMP280.h>
 #include "RTClib.h"
 
 // BLOCK: symbols
@@ -24,6 +25,7 @@
 #define SYMBOL_M 12
 #define SYMBOL_CELSIUS 13
 #define SYMBOL_PERCENTAGE 14
+#define SYMBOL_HG 15
 
 
 //BLOCK: enum 
@@ -41,9 +43,10 @@ Mode mode = Mode::ShowTime;
 // BLOCK: objects
 MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
 RTC_DS3231 rtc;
-Adafruit_AHTX0 sensor;
+Adafruit_BMP280 bmp;
+Adafruit_AHTX0 ahtx0;
 Encoder brightness_encoder(10, 11);
-extern const uint8_t symbols[15][8] = 
+extern const uint8_t symbols[16][8] = 
 {
     {
         0b11110000,
@@ -177,12 +180,12 @@ extern const uint8_t symbols[15][8] =
     },
     {
         0b01000000,
-        0b10100110,
-        0b01001001,
+        0b10100100,
+        0b01001010,
         0b00001000,
         0b00001000,
-        0b00001001,
-        0b00000110,
+        0b00001010,
+        0b00000100,
         0b00000000
     },
     {
@@ -195,6 +198,16 @@ extern const uint8_t symbols[15][8] =
         0b00000100,
         0b00000000
     },
+    {
+        0b00000000,
+        0b00000000,
+        0b10100000,
+        0b10100100,
+        0b11101010,
+        0b10100110,
+        0b10100010,
+        0b00000100
+    }
 };
 
 #endif

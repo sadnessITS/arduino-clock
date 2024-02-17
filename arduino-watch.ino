@@ -3,7 +3,7 @@
 void setup() 
 {
     Serial.begin(57600);
-    sensor.begin();
+    ahtx0.begin();
 
     #ifndef ESP8266
         while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -16,6 +16,11 @@ void setup()
         while (1) delay(10);
     }
 
+    if (!bmp.begin()) {
+        Serial.println("Couldn't find BMP280");
+        while (1) delay(10);
+    }
+
     matrix_cascade.setIntensity(5);
     matrix_cascade.setRotation(2);
 }
@@ -24,11 +29,13 @@ void loop()
 {
     DateTime now = getTime();
     sensors_event_t humiditySensor, temperatureSensor;
-    sensor.getEvent(&humiditySensor, &temperatureSensor);
+    ahtx0.getEvent(&humiditySensor, &temperatureSensor);
     
     matrix_cascade.setIntensity(getBrightness());
 
-    mode = Mode::ShowHumidity;
+    mode = Mode::ShowTime;
+
+    Serial.println("Current brightness: "); Serial.print(brightness);
     
     switch(mode)
     {
@@ -40,9 +47,9 @@ void loop()
                 timing = millis();
             } break;
         case Mode::EditTime: showTime(now); break;
-        case Mode::ShowTemperature: showTemperature(temperatureSensor); break;
-        case Mode::ShowHumidity: showHumidity(humiditySensor); break;
-        case Mode::ShowPressure: showTime(now); break;
+        case Mode::ShowTemperature: showSensorValue((int)temperatureSensor.temperature, SYMBOL_CELSIUS); break;
+        case Mode::ShowHumidity: showSensorValue((int)humiditySensor.relative_humidity, SYMBOL_PERCENTAGE); break;
+        case Mode::ShowPressure: showSensorValue((int)(bmp.readPressure() * 0.0075006375541921), SYMBOL_HG); break;
     }
 }
 
@@ -156,68 +163,66 @@ int getBrightness()
     return brightness;
 }
 
-void showTemperature(sensors_event_t temperatureSensor)
+void showSensorValue(int value, int unit)
 {
-    int countDigitTemperature = 1;
-    if ((int)temperatureSensor.temperature >= 10) countDigitTemperature = 2;
+    int shift = 0;
+    int countDigit = 1;
+    if (value >= 10 && value < 100) countDigit = 2;
+    else if (value >= 100) countDigit = 3;
 
-    if (countDigitTemperature == 1)
+    switch (countDigit)
     {
-        uint8_t* temperature_d1 = shiftToRight(symbols[SYMBOL_0], 4);
-        matrix_cascade[0].set(temperature_d1);
-        delete temperature_d1;
-        uint8_t* temperature_d2 = shiftToRight(symbols[(int)temperatureSensor.temperature], 1);
-        matrix_cascade[1].set(temperature_d2);
-        delete temperature_d2;
-    }
-    else
-    {
-        uint8_t* temperature_d1 = shiftToRight(symbols[(int)temperatureSensor.temperature / 10], 4);
-        matrix_cascade[0].set(temperature_d1);
-        delete temperature_d1;
-        uint8_t* temperature_d2 = shiftToRight(symbols[(int)temperatureSensor.temperature % 10], 1);
-        matrix_cascade[1].set(temperature_d2);
-        delete temperature_d2;
-    }
-    uint8_t* celsius = shiftToRight(symbols[SYMBOL_CELSIUS], 0);
-    matrix_cascade[2].set(celsius);
-    delete celsius;
-}
+        case 1:
+        {
+            uint8_t* digit_d1 = shiftToRight(symbols[SYMBOL_0], 2);
+            matrix_cascade[1].set(digit_d1);
+            delete digit_d1;
+            uint8_t* digit_d2 = shiftToRight(symbols[value % 10], 0);
+            matrix_cascade[2].set(digit_d2);
+            delete digit_d2;
+        } break;
+        case 2:
+        { 
+            int digit_1 = value / 10;
+            if (digit_1 == 1)
+                shift = 4;
+            else
+                shift = 2;
+            uint8_t* digit_d1 = shiftToRight(symbols[digit_1], shift);
+            matrix_cascade[1].set(digit_d1);
+            delete digit_d1;
+            
+            uint8_t* digit_d2 = shiftToRight(symbols[value % 10], 0);
+            matrix_cascade[2].set(digit_d2);
+            delete digit_d2;
+        } break;
+        case 3:
+        {
+            int digit_1 = value / 100;
+            if (digit_1 == 1)
+                shift = 6;
+            else
+                shift = 4;
+            uint8_t* digit_d1 = shiftToRight(symbols[digit_1], shift);
+            matrix_cascade[0].set(digit_d1);
+            delete digit_d1;
 
-void showHumidity(sensors_event_t humiditySensor)
-{
-    int countDigitHumidity = 1;
-    if ((int)humiditySensor.relative_humidity >= 10) countDigitHumidity = 2;
-    if ((int)humiditySensor.relative_humidity == 100) countDigitHumidity = 3;
+            int digit_2 = (value % 100) / 10;
+            if (digit_2 == 1)
+                shift = 4;
+            else
+                shift = 2;
+            uint8_t* digit_d2 = shiftToRight(symbols[digit_2], shift);
+            matrix_cascade[1].set(digit_d2);
+            delete digit_d2;
 
-    if (countDigitHumidity == 1)
-    {
-        uint8_t* digit_d1 = shiftToRight(symbols[(int)humiditySensor.relative_humidity], 1);
-        matrix_cascade[1].set(digit_d1);
-        delete digit_d1;
+            uint8_t* digit_d3 = shiftToRight(symbols[value % 10], 0);
+            matrix_cascade[2].set(digit_d3);
+            delete digit_d3;
+        } break;
     }
-    else if (countDigitHumidity == 2)
-    {
-        uint8_t* digit_d1 = shiftToRight(symbols[(int)humiditySensor.relative_humidity / 10], 4);
-        matrix_cascade[0].set(digit_d1);
-        delete digit_d1;
-        uint8_t* digit_d2 = shiftToRight(symbols[(int)humiditySensor.relative_humidity % 10], 1);
-        matrix_cascade[1].set(digit_d2);
-        delete digit_d2;
-    }
-    else if (countDigitHumidity == 3)
-    {
-        uint8_t* digit_d1 = shiftToRight(symbols[SYMBOL_1], 1);
-        uint8_t* digit_d2 = shiftToRight(symbols[(int)humiditySensor.relative_humidity / 10], 4);
-        uint8_t* merged_d1_d2 = mergeArray(digit_d1, digit_d2);
-        delete digit_d1;
-        delete digit_d2;
-        matrix_cascade[0].set(merged_d1_d2);
-        uint8_t* digit_d3 = shiftToRight(symbols[(int)humiditySensor.relative_humidity % 10], 1);
-        matrix_cascade[1].set(digit_d3);
-        delete digit_d3;
-    }
-    uint8_t* percentage = shiftToRight(symbols[SYMBOL_PERCENTAGE], 0);
-    matrix_cascade[2].set(percentage);
-    delete percentage;
+
+    uint8_t* unit_symbol = shiftToRight(symbols[unit], 0);
+    matrix_cascade[3].set(unit_symbol);
+    delete unit_symbol;
 }

@@ -2,8 +2,8 @@
 
 void setup() 
 {
-    Serial.begin(57600);
-    ahtx0.begin();
+    Wire.begin();
+    Serial.begin(9600);
 
     #ifndef ESP8266
         while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -21,6 +21,11 @@ void setup()
         while (1) delay(10);
     }
 
+    if (!aht20.begin()) {
+        Serial.println("Couldn't find AHT20");
+        while (1);
+    }
+
     matrix_cascade.setIntensity(5);
     matrix_cascade.setRotation(2);
 }
@@ -28,28 +33,39 @@ void setup()
 void loop() 
 {
     DateTime now = getTime();
-    sensors_event_t humiditySensor, temperatureSensor;
-    ahtx0.getEvent(&humiditySensor, &temperatureSensor);
+    mode = Mode::ShowHumidity;
     
     matrix_cascade.setIntensity(getBrightness());
-
-    mode = Mode::ShowTime;
-
-    Serial.println("Current brightness: "); Serial.print(brightness);
+    Serial.println(getBrightness());
     
     switch(mode)
     {
         case Mode::ShowTime: 
-            if (millis() - timing > 1000)
+            if (millis() - timingMode > 1000)
             {
                 showTime(now);
                 setColon(now);
-                timing = millis();
+                timingMode = millis();
             } break;
         case Mode::EditTime: showTime(now); break;
-        case Mode::ShowTemperature: showSensorValue((int)temperatureSensor.temperature, SYMBOL_CELSIUS); break;
-        case Mode::ShowHumidity: showSensorValue((int)humiditySensor.relative_humidity, SYMBOL_PERCENTAGE); break;
-        case Mode::ShowPressure: showSensorValue((int)(bmp.readPressure() * 0.0075006375541921), SYMBOL_HG); break;
+        case Mode::ShowTemperature: 
+            if (millis() - timingMode > 100)
+            {
+                showSensorValue((int)aht20.getTemperature(), SYMBOL_CELSIUS);
+                timingMode = millis();
+            } break;
+        case Mode::ShowHumidity:
+            if (millis() - timingMode > 100)
+            {
+                showSensorValue((int)aht20.getHumidity(), SYMBOL_PERCENTAGE);
+                timingMode = millis();
+            } break;
+        case Mode::ShowPressure: 
+            if (millis() - timingMode > 100)
+            {
+                showSensorValue((int)(bmp.readPressure() * 0.0075006375541921), SYMBOL_HG);
+                timingMode = millis();
+            } break;
     }
 }
 
@@ -153,13 +169,18 @@ void setColon(DateTime time)
 
 int getBrightness()
 {
-    int current_encoder_value = brightness_encoder.read() / 4;
-    if (current_encoder_value > previous_encoder_value)
+    int current_encoder_value = brightness_encoder.read();
+    if (current_encoder_value > previous_encoder_value + 4)
+    {
         brightness += 1;
-    else if (current_encoder_value < previous_encoder_value)
+        previous_encoder_value = current_encoder_value;
+    }
+    else if (current_encoder_value < previous_encoder_value - 4)
+    {
         brightness -= 1;
+        previous_encoder_value = current_encoder_value;
+    }
     brightness = constrain(brightness, 1, 15);
-    previous_encoder_value = current_encoder_value;
     return brightness;
 }
 

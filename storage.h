@@ -5,7 +5,7 @@
 #include "MatrixCascade.h"
 #include <Encoder.h>
 #include <Wire.h>
-#include <Adafruit_AHTX0.h>
+#include <AHT20.h>
 #include <Adafruit_BMP280.h>
 #include "RTClib.h"
 
@@ -35,7 +35,8 @@ enum class Mode {ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure
 #define CASCADE_SIZE 4
 
 // BLOCK: variable
-unsigned long timing;
+unsigned long timingMode;
+unsigned long timingBrightness;
 int previous_encoder_value = 0;
 int brightness = 8;
 Mode mode = Mode::ShowTime;
@@ -44,7 +45,7 @@ Mode mode = Mode::ShowTime;
 MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
 RTC_DS3231 rtc;
 Adafruit_BMP280 bmp;
-Adafruit_AHTX0 ahtx0;
+AHT20 aht20;
 Encoder brightness_encoder(10, 11);
 extern const uint8_t symbols[16][8] = 
 {

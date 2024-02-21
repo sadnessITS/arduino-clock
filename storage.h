@@ -30,6 +30,7 @@
 
 //BLOCK: enum 
 enum class Mode {ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure};
+enum class EditedPart {Hours, Minutes, HalfOfDay};
 
 // BLOCK: const
 #define CASCADE_SIZE 4
@@ -37,16 +38,18 @@ enum class Mode {ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure
 // BLOCK: variable
 unsigned long timingMode;
 unsigned long timingBrightness;
-int previous_encoder_value = 0;
+int previous_encoder_brightness = 0;
+int previous_encoder_time = 0;
 int brightness = 8;
 Mode mode = Mode::ShowTime;
+EditedPart edited_part = EditedPart::Hours;
 
 // BLOCK: objects
 MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
 RTC_DS3231 rtc;
 Adafruit_BMP280 bmp;
 AHT20 aht20;
-Encoder brightness_encoder(10, 11);
+Encoder encoder(10, 11);
 extern const uint8_t symbols[16][8] = 
 {
     {

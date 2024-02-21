@@ -33,7 +33,7 @@ void setup()
 void loop() 
 {
     DateTime now = getTime();
-    mode = Mode::ShowHumidity;
+    mode = Mode::ShowTime;
     
     matrix_cascade.setIntensity(getBrightness());
     Serial.println(getBrightness());
@@ -169,16 +169,16 @@ void setColon(DateTime time)
 
 int getBrightness()
 {
-    int current_encoder_value = brightness_encoder.read();
-    if (current_encoder_value > previous_encoder_value + 4)
+    int current_encoder_brightness = encoder.read();
+    if (current_encoder_brightness > previous_encoder_brightness + 4)
     {
         brightness += 1;
-        previous_encoder_value = current_encoder_value;
+        previous_encoder_brightness = current_encoder_brightness;
     }
-    else if (current_encoder_value < previous_encoder_value - 4)
+    else if (current_encoder_brightness < previous_encoder_brightness - 4)
     {
         brightness -= 1;
-        previous_encoder_value = current_encoder_value;
+        previous_encoder_brightness = current_encoder_brightness;
     }
     brightness = constrain(brightness, 1, 15);
     return brightness;
@@ -246,4 +246,31 @@ void showSensorValue(int value, int unit)
     uint8_t* unit_symbol = shiftToRight(symbols[unit], 0);
     matrix_cascade[3].set(unit_symbol);
     delete unit_symbol;
+}
+
+
+void EditTime(DateTime time)
+{
+    switch (edited_part)
+    {
+        case EditedPart::Hours: 
+        {
+            if (time.second() % 2 == 1)
+            {
+                uint8_t hour = time.twelveHour();
+            }
+            else
+                matrix_cascade[0].clear();
+        } break;
+        case EditedPart::Minutes: break;
+        case EditedPart::HalfOfDay: break;
+    }
+    
+    uint8_t colInd = 0;
+    for (auto &col: matrix_cascade[1].cols())
+    {
+        if (colInd == 1)
+            matrix_cascade[1].set(col, {0b00101000});
+        colInd++;
+    }
 }

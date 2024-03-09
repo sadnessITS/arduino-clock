@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef STORAGE_H
 #define STORAGE_H
 
@@ -8,6 +10,17 @@
 #include <AHT20.h>
 #include <Adafruit_BMP280.h>
 #include "RTClib.h"
+
+//BLOCK: prototypes
+int getBrightness();
+DateTime getTime();
+void showTime12H(DateTime time);
+void blinkColon(DateTime time, int matrix_number, int column_number);
+void showSensorValue(int value, int unit);
+void editTime(DateTime time);
+void blinkDigit(int matrix_number, int shift_number, int digit);
+uint8_t *shiftToRightArray(uint8_t arr[8], int n);
+uint8_t *mergeArray(uint8_t a1[8], uint8_t a2[8]);
 
 // BLOCK: symbols
 #define SYMBOL_0 0
@@ -29,28 +42,28 @@
 
 
 //BLOCK: enum 
-enum class Mode {ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure};
-enum class EditedPart {Hours, Minutes, HalfOfDay};
+enum class Mode { ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
+enum class EditedPart { Hours, Minutes, HalfOfDay };
 
 // BLOCK: const
 #define CASCADE_SIZE 4
 
 // BLOCK: variable
-unsigned long timingMode;
-unsigned long timingBrightness;
-int previous_encoder_brightness = 0;
-int previous_encoder_time = 0;
-int brightness = 8;
-Mode mode = Mode::ShowTime;
-EditedPart edited_part = EditedPart::Hours;
+inline unsigned long timingMode;
+inline unsigned long timingBrightness;
+inline int previous_encoder_brightness = 0;
+inline int previous_encoder_time = 0;
+inline int brightness = 8;
+inline Mode mode = Mode::ShowTime;
+inline EditedPart edited_part = EditedPart::Hours;
 
 // BLOCK: objects
-MatrixCascade<CASCADE_SIZE> matrix_cascade(4, 8, 6);
-RTC_DS3231 rtc;
-Adafruit_BMP280 bmp;
-AHT20 aht20;
-Encoder encoder(10, 11);
-extern const uint8_t symbols[16][8] = 
+inline MatrixCascade<CASCADE_SIZE> matrix_cascade(12, 10, 11);
+inline RTC_DS3231 rtc;
+inline Adafruit_BMP280 bmp;
+inline AHT20 aht20;
+inline Encoder encoder(4, 5);
+inline const uint8_t symbols[16][8] = 
 {
     {
         0b11110000,

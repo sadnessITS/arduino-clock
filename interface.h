@@ -4,7 +4,6 @@
 #define INTERFACE_H
 
 #include <Arduino.h>
-#include "MatrixCascade.h"
 #include "RTClib.h"
 
 //BLOCK: prototypes

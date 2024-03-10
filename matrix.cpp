@@ -1,5 +1,16 @@
 #include "storage.h"
+#include "interface.h"
+#include "MatrixCascade.h"
+#include "RTClib.h"
 #include <Arduino.h>
+
+using constants::symbols;
+using constants::SYMBOL_0;
+using constants::SYMBOL_1;
+using constants::SYMBOL_A;
+using constants::SYMBOL_P;
+using constants::SYMBOL_M;
+using objects::matrix_cascade;
 
 void showTime12H(DateTime time) {
   uint8_t *symbol_f;

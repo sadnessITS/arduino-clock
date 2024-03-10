@@ -1,6 +1,8 @@
+#include "interface.h"
 #include "storage.h"
 
 void setup() {
+  using namespace objects;
   Wire.begin();
   Serial.begin(9600);
 
@@ -33,11 +35,16 @@ void setup() {
 }
 
 void loop() {
-  DateTime now = getTime();
-  mode = Mode::ShowHumidity;
+  using namespace constants;
+  using namespace timings;
+  using objects::matrix_cascade;
+  using objects::aht20;
+  using objects::bmp;
+  using enums::mode;
 
-  matrix_cascade.setIntensity(getBrightness());
-  Serial.println(getBrightness());
+  DateTime now = getTime();
+
+  matrix_cascade.setIntensity(getCascadeBrightness());
 
   switch (mode) {
   case Mode::ShowTime:

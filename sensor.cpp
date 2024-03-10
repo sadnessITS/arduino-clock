@@ -1,9 +1,19 @@
+#include "interface.h"
 #include "storage.h"
 #include <Arduino.h>
+#include <Encoder.h>
 
-DateTime getTime() { return rtc.now(); }
 
-int getBrightness() {
+DateTime getTime() {
+  using objects::rtc;
+  return rtc.now(); 
+}
+
+int getCascadeBrightness() {
+  using brightness::brightness;
+  using brightness::previous_encoder_brightness;
+  using objects::encoder;
+
   int current_encoder_brightness = encoder.read();
   if (current_encoder_brightness > previous_encoder_brightness + 4) {
     brightness += 1;

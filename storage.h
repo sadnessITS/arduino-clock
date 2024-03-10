@@ -10,221 +10,217 @@
 #include <AHT20.h>
 #include <Adafruit_BMP280.h>
 #include "RTClib.h"
+#include <Arduino.h>
 
-//BLOCK: prototypes
-int getBrightness();
-DateTime getTime();
-void showTime12H(DateTime time);
-void blinkColon(DateTime time, int matrix_number, int column_number);
-void showSensorValue(int value, int unit);
-void editTime(DateTime time);
-void blinkDigit(int matrix_number, int shift_number, int digit);
-uint8_t *shiftToRightArray(uint8_t arr[8], int n);
-uint8_t *mergeArray(uint8_t a1[8], uint8_t a2[8]);
+namespace constants {
+    const int SYMBOL_0 = 0;
+    const int SYMBOL_1 = 1;
+    const int SYMBOL_2 = 2;
+    const int SYMBOL_3 = 3;
+    const int SYMBOL_4 = 4;
+    const int SYMBOL_5 = 5;
+    const int SYMBOL_6 = 6;
+    const int SYMBOL_7 = 7;
+    const int SYMBOL_8 = 8;
+    const int SYMBOL_9 = 9;
+    const int SYMBOL_A = 10;
+    const int SYMBOL_P = 11;
+    const int SYMBOL_M = 12;
+    const int SYMBOL_CELSIUS = 13;
+    const int SYMBOL_PERCENTAGE = 14;
+    const int SYMBOL_HG = 15;
 
-// BLOCK: symbols
-#define SYMBOL_0 0
-#define SYMBOL_1 1
-#define SYMBOL_2 2
-#define SYMBOL_3 3
-#define SYMBOL_4 4
-#define SYMBOL_5 5
-#define SYMBOL_6 6
-#define SYMBOL_7 7
-#define SYMBOL_8 8
-#define SYMBOL_9 9
-#define SYMBOL_A 10
-#define SYMBOL_P 11
-#define SYMBOL_M 12
-#define SYMBOL_CELSIUS 13
-#define SYMBOL_PERCENTAGE 14
-#define SYMBOL_HG 15
+    const int CASCADE_SIZE = 4;
 
+    const uint8_t symbols[16][8] = 
+    {
+        {
+            0b11110000,
+            0b10010000,
+            0b10010000,
+            0b10010000,
+            0b10010000,
+            0b10010000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b01000000,
+            0b11000000,
+            0b01000000,
+            0b01000000,
+            0b01000000,
+            0b01000000,
+            0b01000000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10010000,
+            0b00010000,
+            0b00100000,
+            0b01000000,
+            0b10000000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10010000,
+            0b00010000,
+            0b01110000,
+            0b00010000,
+            0b10010000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b10010000,
+            0b10010000,
+            0b10010000,
+            0b11110000,
+            0b00010000,
+            0b00010000,
+            0b00010000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10000000,
+            0b10000000,
+            0b11110000,
+            0b00010000,
+            0b10010000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10010000,
+            0b10000000,
+            0b11110000,
+            0b10010000,
+            0b10010000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10010000,
+            0b00010000,
+            0b00100000,
+            0b01000000,
+            0b10000000,
+            0b10000000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10010000,
+            0b10010000,
+            0b11110000,
+            0b10010000,
+            0b10010000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b11110000,
+            0b10010000,
+            0b10010000,
+            0b11110000,
+            0b00010000,
+            0b10010000,
+            0b11110000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b01000000,
+            0b10100000,
+            0b11100000,
+            0b10100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b11000000,
+            0b10100000,
+            0b11000000,
+            0b10000000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b10001000,
+            0b11011000,
+            0b10101000,
+            0b10001000,
+            0b00000000
+        },
+        {
+            0b01000000,
+            0b10100100,
+            0b01001010,
+            0b00001000,
+            0b00001000,
+            0b00001010,
+            0b00000100,
+            0b00000000
+        },
+        {
+            0b01000000,
+            0b10100100,
+            0b01001000,
+            0b00010000,
+            0b00100100,
+            0b01001010,
+            0b00000100,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b10100000,
+            0b10100100,
+            0b11101010,
+            0b10100110,
+            0b10100010,
+            0b00000100
+        }
+    };
+}
 
-//BLOCK: enum 
-enum class Mode { ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
-enum class EditedPart { Hours, Minutes, HalfOfDay };
+enum Mode { ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
+enum EditedPart { Hours, Minutes, HalfOfDay };
 
-// BLOCK: const
-#define CASCADE_SIZE 4
+namespace timings {
+    extern unsigned long timingMode;
+    extern unsigned long timingBrightness;
+}
 
-// BLOCK: variable
-inline unsigned long timingMode;
-inline unsigned long timingBrightness;
-inline int previous_encoder_brightness = 0;
-inline int previous_encoder_time = 0;
-inline int brightness = 8;
-inline Mode mode = Mode::ShowTime;
-inline EditedPart edited_part = EditedPart::Hours;
+namespace brightness {
+    extern int previous_encoder_brightness;
+    extern int brightness;
+}
 
-// BLOCK: objects
-inline MatrixCascade<CASCADE_SIZE> matrix_cascade(12, 10, 11);
-inline RTC_DS3231 rtc;
-inline Adafruit_BMP280 bmp;
-inline AHT20 aht20;
-inline Encoder encoder(4, 5);
-inline const uint8_t symbols[16][8] = 
-{
-    {
-        0b11110000,
-        0b10010000,
-        0b10010000,
-        0b10010000,
-        0b10010000,
-        0b10010000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b01000000,
-        0b11000000,
-        0b01000000,
-        0b01000000,
-        0b01000000,
-        0b01000000,
-        0b01000000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10010000,
-        0b00010000,
-        0b00100000,
-        0b01000000,
-        0b10000000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10010000,
-        0b00010000,
-        0b01110000,
-        0b00010000,
-        0b10010000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b10010000,
-        0b10010000,
-        0b10010000,
-        0b11110000,
-        0b00010000,
-        0b00010000,
-        0b00010000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10000000,
-        0b10000000,
-        0b11110000,
-        0b00010000,
-        0b10010000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10010000,
-        0b10000000,
-        0b11110000,
-        0b10010000,
-        0b10010000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10010000,
-        0b00010000,
-        0b00100000,
-        0b01000000,
-        0b10000000,
-        0b10000000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10010000,
-        0b10010000,
-        0b11110000,
-        0b10010000,
-        0b10010000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b11110000,
-        0b10010000,
-        0b10010000,
-        0b11110000,
-        0b00010000,
-        0b10010000,
-        0b11110000,
-        0b00000000
-    },
-    {
-        0b00000000,
-        0b00000000,
-        0b00000000,
-        0b01000000,
-        0b10100000,
-        0b11100000,
-        0b10100000,
-        0b00000000
-    },
-    {
-        0b00000000,
-        0b00000000,
-        0b00000000,
-        0b11000000,
-        0b10100000,
-        0b11000000,
-        0b10000000,
-        0b00000000
-    },
-    {
-        0b00000000,
-        0b00000000,
-        0b00000000,
-        0b10001000,
-        0b11011000,
-        0b10101000,
-        0b10001000,
-        0b00000000
-    },
-    {
-        0b01000000,
-        0b10100100,
-        0b01001010,
-        0b00001000,
-        0b00001000,
-        0b00001010,
-        0b00000100,
-        0b00000000
-    },
-    {
-        0b01000000,
-        0b10100100,
-        0b01001000,
-        0b00010000,
-        0b00100100,
-        0b01001010,
-        0b00000100,
-        0b00000000
-    },
-    {
-        0b00000000,
-        0b00000000,
-        0b10100000,
-        0b10100100,
-        0b11101010,
-        0b10100110,
-        0b10100010,
-        0b00000100
-    }
-};
+namespace enums {
+    extern Mode mode;
+    extern EditedPart edited_part;
+}
+
+namespace objects {
+    extern MatrixCascade<constants::CASCADE_SIZE> matrix_cascade;
+    extern RTC_DS3231 rtc;
+    extern Adafruit_BMP280 bmp;
+    extern AHT20 aht20;
+    extern Encoder encoder;
+}
 
 #endif

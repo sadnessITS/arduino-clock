@@ -4,15 +4,9 @@
 #include "RTClib.h"
 #include <Arduino.h>
 
-using constants::symbols;
-using constants::SYMBOL_0;
-using constants::SYMBOL_1;
-using constants::SYMBOL_A;
-using constants::SYMBOL_P;
-using constants::SYMBOL_M;
-using objects::matrix_cascade;
-
 void showTime12H(DateTime time) {
+  using namespace constants;
+  using objects::matrix_cascade;
   uint8_t *symbol_f;
   int countDigitHours = 1;
   int countDigitMinutes = 1;
@@ -71,6 +65,7 @@ void showTime12H(DateTime time) {
 }
 
 void blinkColon(DateTime time, int matrix_number, int column_number) {
+  using objects::matrix_cascade;
   uint8_t colInd = 0;
   for (auto &col : matrix_cascade[matrix_number].cols()) {
     if (colInd == column_number)
@@ -83,6 +78,8 @@ void blinkColon(DateTime time, int matrix_number, int column_number) {
 }
 
 void showSensorValue(int value, int unit) {
+  using namespace constants;
+  using objects::matrix_cascade;
   int shift = 0;
   int countDigit = 1;
   if (value >= 10 && value < 100)

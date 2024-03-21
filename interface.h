@@ -7,10 +7,14 @@
 #include "RTClib.h"
 
 //BLOCK: prototypes
-int getCascadeBrightness();
+void configureSensors();
 DateTime getTime();
+int getCascadeBrightness();
+void changeMode();
+void configureMatrix();
 void showTime12H(DateTime time);
-void blinkColon(DateTime time, int matrix_number, int column_number);
+void showTime24H(DateTime time);
+uint8_t* setColon(DateTime time, uint8_t matrix[8], int column_number);
 void showSensorValue(int value, int unit);
 void editTime(DateTime time);
 void blinkDigit(int matrix_number, int shift_number, int digit);

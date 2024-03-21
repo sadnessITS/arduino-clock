@@ -29,10 +29,17 @@ namespace constants {
     const int SYMBOL_CELSIUS = 13;
     const int SYMBOL_PERCENTAGE = 14;
     const int SYMBOL_HG = 15;
+    const int SYMBOL_CLEAR = 16;
+
+    const int CHANGE_MODE_BTN = 9;
+    
+    // const int BUZZER_PIN = 1;
+    // const int BUZZER_NOTE = 330;
+    // const int BUZZER_DURATION = 120;
 
     const int CASCADE_SIZE = 4;
 
-    const uint8_t symbols[16][8] = 
+    const uint8_t symbols[17][8] = 
     {
         {
             0b11110000,
@@ -193,16 +200,27 @@ namespace constants {
             0b10100110,
             0b10100010,
             0b00000100
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00000000
         }
     };
 }
 
-enum Mode { ShowTime, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
+enum Mode { ShowTime12H, ShowTime24H, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
 enum EditedPart { Hours, Minutes, HalfOfDay };
 
 namespace timings {
     extern unsigned long timingMode;
     extern unsigned long timingBrightness;
+    extern unsigned long timingChangeModeButton;
 }
 
 namespace brightness {
@@ -221,6 +239,10 @@ namespace objects {
     extern Adafruit_BMP280 bmp;
     extern AHT20 aht20;
     extern Encoder encoder;
+}
+
+namespace flags {
+    extern int changeModeFlag;
 }
 
 #endif

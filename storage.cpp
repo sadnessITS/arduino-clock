@@ -4,15 +4,16 @@
 namespace timings {
   unsigned long timingMode = 0;
   unsigned long timingBrightness = 0;
+  unsigned long timingChangeModeButton = 0;
 }
 
 namespace brightness {
   int previous_encoder_brightness = 0;
-  int brightness = 8;
+  int brightness = 2;
 }
 
 namespace enums {
-  Mode mode = Mode::ShowTime;
+  Mode mode = Mode::ShowTime12H;
   EditedPart edited_part = EditedPart::Hours;
 }
 
@@ -22,4 +23,8 @@ namespace objects {
   Adafruit_BMP280 bmp;
   AHT20 aht20;
   Encoder encoder(4, 5);
+}
+
+namespace flags {
+    int changeModeFlag = 0;
 }

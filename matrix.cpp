@@ -1,7 +1,7 @@
-#include "storage.h"
-#include "interface.h"
 #include "MatrixCascade.h"
 #include "RTClib.h"
+#include "interface.h"
+#include "storage.h"
 #include <Arduino.h>
 
 void configureMatrix() {
@@ -20,53 +20,59 @@ void showTime12H(DateTime time) {
   if (time.minute() >= 10)
     countDigitMinutes = 2;
   if (time.isPM())
-    symbol_f = shiftToRightArray(symbols[SYMBOL_P], 5);
+    symbol_f = copyArray(symbols[SYMBOL_P]);
   else
-    symbol_f = shiftToRightArray(symbols[SYMBOL_A], 5);
+    symbol_f = copyArray(symbols[SYMBOL_A]);
+
+  shiftToRightArray(symbol_f, 5);
 
   if (countDigitHours == 1) {
-    uint8_t *hour_d1 = shiftToRightArray(symbols[time.twelveHour()], 4);
+    uint8_t *hour_d1 = copyArray(symbols[time.twelveHour()]);
+    shiftToRightArray(hour_d1, 4);
     matrix_cascade[0].set(hour_d1);
     delete hour_d1;
   } else if (countDigitHours == 2) {
-    uint8_t *hour_d1 = shiftToRightArray(symbols[SYMBOL_1], 1);
-    uint8_t *hour_d2 = shiftToRightArray(symbols[time.twelveHour() % 10], 4);
+    uint8_t *hour_d1 = copyArray(symbols[SYMBOL_1]);
+    shiftToRightArray(hour_d1, 1);
+    uint8_t *hour_d2 = copyArray(symbols[time.twelveHour() % 10]);
+    shiftToRightArray(hour_d2, 4);
     uint8_t *hour = mergeArray(hour_d1, hour_d2);
+    matrix_cascade[0].set(hour);
     delete hour_d1;
     delete hour_d2;
-    matrix_cascade[0].set(hour);
     delete hour;
   }
   if (countDigitMinutes == 1) {
-    uint8_t *min_d1 = shiftToRightArray(symbols[SYMBOL_0], 3);
-    uint8_t *min_d1_colon = setColon(time, min_d1, 6);
-    matrix_cascade[1].set(min_d1_colon);
-    delete min_d1;
-    delete min_d1_colon;
-    uint8_t *min_d2 = shiftToRightArray(symbols[time.minute()], 0);
+    uint8_t *min_d1 = copyArray(symbols[SYMBOL_0]);
+    shiftToRightArray(min_d1, 3);
+    setColon(time, min_d1, 6);
+    matrix_cascade[1].set(min_d1);
+    uint8_t *min_d2 = copyArray(symbols[time.minute()]);
     uint8_t *matrix_2 = mergeArray(min_d2, symbol_f);
+    matrix_cascade[2].set(matrix_2);
+    delete min_d1;
     delete min_d2;
     delete symbol_f;
-    matrix_cascade[2].set(matrix_2);
     delete matrix_2;
   } else if (countDigitMinutes == 2) {
     int min_d1_index = time.minute() / 10;
     int shift_count = 3;
     if (min_d1_index == 1)
       shift_count = 5;
-    uint8_t *min_d1 = shiftToRightArray(symbols[min_d1_index], shift_count);
-    uint8_t *min_d1_colon = setColon(time, min_d1, 6);
-    matrix_cascade[1].set(min_d1_colon);
-    delete min_d1;
-    delete min_d1_colon;
-    uint8_t *min_d2 = shiftToRightArray(symbols[time.minute() % 10], 0);
+    uint8_t *min_d1 = copyArray(symbols[min_d1_index]);
+    shiftToRightArray(min_d1, shift_count);
+    setColon(time, min_d1, 6);
+    matrix_cascade[1].set(min_d1);
+    uint8_t *min_d2 = copyArray(symbols[time.minute() % 10]);
     uint8_t *matrix_2 = mergeArray(min_d2, symbol_f);
+    matrix_cascade[2].set(matrix_2);
+    delete min_d1;
     delete min_d2;
     delete symbol_f;
-    matrix_cascade[2].set(matrix_2);
     delete matrix_2;
   }
-  uint8_t *symbol_m = shiftToRightArray(symbols[SYMBOL_M], 1);
+  uint8_t *symbol_m = copyArray(symbols[SYMBOL_M]);
+  shiftToRightArray(symbol_m, 1);
   matrix_cascade[3].set(symbol_m);
   delete symbol_m;
 }
@@ -82,31 +88,32 @@ void showTime24H(DateTime time) {
     countDigitMinutes = 2;
 
   if (countDigitHours == 1) {
-    uint8_t *hour_d1 = shiftToRightArray(symbols[SYMBOL_0], 3);
-    uint8_t *hour_d2 = shiftToRightArray(symbols[time.hour()], 0);
-    uint8_t *hour_d2_colon = setColon(time, hour_d2, 0);
+    uint8_t *hour_d1 = copyArray(symbols[SYMBOL_0]);
+    shiftToRightArray(hour_d1, 3);
+    uint8_t *hour_d2 = copyArray(symbols[time.hour()]);
+    setColon(time, hour_d2, 0);
     matrix_cascade[0].set(hour_d1);
-    matrix_cascade[1].set(hour_d2_colon);
+    matrix_cascade[1].set(hour_d2);
     delete hour_d1;
     delete hour_d2;
-    delete hour_d2_colon;
   } else if (countDigitHours == 2) {
     int hour_d1_index = time.hour() / 10;
     int shift_count = 3;
     if (hour_d1_index == 1)
       shift_count = 5;
-    uint8_t *hour_d1 = shiftToRightArray(symbols[hour_d1_index], shift_count);
-    uint8_t *hour_d2 = shiftToRightArray(symbols[time.hour() % 10], 0);
-    uint8_t *hour_d2_colon = setColon(time, hour_d2, 0);
+    uint8_t *hour_d1 = copyArray(symbols[hour_d1_index]);
+    shiftToRightArray(hour_d1, shift_count);
+    uint8_t *hour_d2 = copyArray(symbols[time.hour() % 10]);
+    setColon(time, hour_d2, 0);
     matrix_cascade[0].set(hour_d1);
-    matrix_cascade[1].set(hour_d2_colon);
+    matrix_cascade[1].set(hour_d2);
     delete hour_d1;
     delete hour_d2;
-    delete hour_d2_colon;
   }
   if (countDigitMinutes == 1) {
-    uint8_t *min_d1 = shiftToRightArray(symbols[SYMBOL_0], 3);
-    uint8_t *min_d2 = shiftToRightArray(symbols[time.minute()], 0);
+    uint8_t *min_d1 = copyArray(symbols[SYMBOL_0]);
+    shiftToRightArray(min_d1, 3);
+    uint8_t *min_d2 = copyArray(symbols[time.minute()]);
     matrix_cascade[2].set(min_d1);
     matrix_cascade[3].set(min_d2);
     delete min_d1;
@@ -116,33 +123,14 @@ void showTime24H(DateTime time) {
     int shift_count = 3;
     if (min_d1_index == 1)
       shift_count = 5;
-    uint8_t *min_d1 = shiftToRightArray(symbols[min_d1_index], shift_count);
-    uint8_t *min_d2 = shiftToRightArray(symbols[time.minute() % 10], 0);
+    uint8_t *min_d1 = copyArray(symbols[min_d1_index]);
+    shiftToRightArray(min_d1, shift_count);
+    uint8_t *min_d2 = copyArray(symbols[time.minute() % 10]);
     matrix_cascade[2].set(min_d1);
     matrix_cascade[3].set(min_d2);
     delete min_d1;
     delete min_d2;
   }
-}
-
-uint8_t* setColon(DateTime time, uint8_t matrix[8], int column_number) {
-  using objects::matrix_cascade;
-  uint8_t *result = new uint8_t[8];
-  for (int i = 0; i < 8; i++)
-    result[i] = matrix[i];
-
-  uint8_t mask = 1 << column_number;
-  
-  if (time.second() % 2 == 1) {
-    result[2] = result[2] | mask;
-    result[4] = result[4] | mask;
-  }
-  else {
-    result[2] = result[2] & ~mask;
-    result[4] = result[4] & ~mask;
-  }
-  
-  return result;
 }
 
 void showSensorValue(int value, int unit) {
@@ -157,15 +145,18 @@ void showSensorValue(int value, int unit) {
 
   switch (countDigit) {
   case 1: {
-    uint8_t *digit_d1 = shiftToRightArray(symbols[SYMBOL_0], 2);
+    uint8_t *digit_d1 = copyArray(symbols[SYMBOL_0]);
+    shiftToRightArray(digit_d1, 2);
     matrix_cascade[1].set(digit_d1);
-    delete digit_d1;
-    uint8_t *digit_d2 = shiftToRightArray(symbols[value % 10], 0);
+
+    uint8_t *digit_d2 = copyArray(symbols[value % 10]);
     matrix_cascade[2].set(digit_d2);
-    delete digit_d2;
-    
-    uint8_t *clear_matrix = shiftToRightArray(symbols[SYMBOL_CLEAR], 0);
+
+    uint8_t *clear_matrix = copyArray(symbols[SYMBOL_CLEAR]);
     matrix_cascade[0].set(clear_matrix);
+
+    delete digit_d1;
+    delete digit_d2;
     delete clear_matrix;
   } break;
   case 2: {
@@ -174,16 +165,19 @@ void showSensorValue(int value, int unit) {
       shift = 4;
     else
       shift = 2;
-    uint8_t *digit_d1 = shiftToRightArray(symbols[digit_1], shift);
+
+    uint8_t *digit_d1 = copyArray(symbols[digit_1]);
+    shiftToRightArray(digit_d1, shift);
     matrix_cascade[1].set(digit_d1);
-    delete digit_d1;
 
-    uint8_t *digit_d2 = shiftToRightArray(symbols[value % 10], 0);
+    uint8_t *digit_d2 = copyArray(symbols[value % 10]);
     matrix_cascade[2].set(digit_d2);
-    delete digit_d2;
 
-    uint8_t *clear_matrix = shiftToRightArray(symbols[SYMBOL_CLEAR], 0);
+    uint8_t *clear_matrix = copyArray(symbols[SYMBOL_CLEAR]);
     matrix_cascade[0].set(clear_matrix);
+
+    delete digit_d2;
+    delete digit_d1;
     delete clear_matrix;
   } break;
   case 3: {
@@ -192,26 +186,28 @@ void showSensorValue(int value, int unit) {
       shift = 6;
     else
       shift = 4;
-    uint8_t *digit_d1 = shiftToRightArray(symbols[digit_1], shift);
+    uint8_t *digit_d1 = copyArray(symbols[digit_1]);
+    shiftToRightArray(digit_d1, shift);
     matrix_cascade[0].set(digit_d1);
-    delete digit_d1;
 
     int digit_2 = (value % 100) / 10;
     if (digit_2 == 1)
       shift = 4;
     else
       shift = 2;
-    uint8_t *digit_d2 = shiftToRightArray(symbols[digit_2], shift);
+    uint8_t *digit_d2 = copyArray(symbols[digit_2]);
+    shiftToRightArray(digit_d2, shift);
     matrix_cascade[1].set(digit_d2);
-    delete digit_d2;
 
-    uint8_t *digit_d3 = shiftToRightArray(symbols[value % 10], 0);
+    uint8_t *digit_d3 = copyArray(symbols[value % 10]);
     matrix_cascade[2].set(digit_d3);
+    delete digit_d1;
+    delete digit_d2;
     delete digit_d3;
   } break;
   }
 
-  uint8_t *unit_symbol = shiftToRightArray(symbols[unit], 0);
+  uint8_t *unit_symbol = copyArray(symbols[unit]);
   matrix_cascade[3].set(unit_symbol);
   delete unit_symbol;
 }
@@ -241,7 +237,6 @@ void changeMode() {
 void editTime(DateTime time) {
   showTime24H(time);
   while (true) {
-    
   }
 }
 

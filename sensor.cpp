@@ -4,9 +4,10 @@
 
 void configureSensors() {
   using namespace objects;
+  //using constants::BUZZER_PIN;
   using constants::CHANGE_MODE_BTN;
 
-  // pinMode(8, INPUT_PULLUP);
+  //pinMode(BUZZER_PIN, OUTPUT);
   pinMode(CHANGE_MODE_BTN, INPUT_PULLUP);
 
   Wire.begin();

@@ -18,54 +18,41 @@ void loop() {
 
   DateTime now = getTime();
 
+  Serial.println(now.year() % 100);
+
   matrix_cascade.setIntensity(getCascadeBrightness());
 
-  if (digitalRead(CHANGE_MODE_BTN) == HIGH && !changeModeFlag &&
-      millis() - timingChangeModeButton > 100) {
-    changeModeFlag = true;
-    timingChangeModeButton = millis();
-    changeMode();
-  }
-  if (digitalRead(CHANGE_MODE_BTN) == LOW && changeModeFlag &&
-      millis() - timingChangeModeButton > 100) {
-    changeModeFlag = false;
-    timingChangeModeButton = millis();
-  }
+  controlModeBtn();
+  controlFunctionalBtn();
 
-  switch (mode) {
-  case Mode::ShowTime12H:
-    if (millis() - timingMode > 100) {
-      showTime12H(now);
-      timingMode = millis();
-    }
-    break;
-  case Mode::ShowTime24H:
-    if (millis() - timingMode > 100) {
-      showTime24H(now);
-      timingMode = millis();
-    }
-    break;
-  case Mode::EditTime:
-    editTime(now);
-    break;
-  case Mode::ShowTemperature:
-    if (millis() - timingMode > 100) {
-      showSensorValue((int)aht20.getTemperature(), SYMBOL_CELSIUS);
-      timingMode = millis();
-    }
-    break;
-  case Mode::ShowHumidity:
-    if (millis() - timingMode > 100) {
+  if (millis() - timingMode > 100) {
+    switch (mode) {
+    case Mode::ShowTime:
+      if (is24HFormat)
+        showTime24H(now, true);
+      else
+        showTime12H(now, true);
+      break;
+    case Mode::ShowDate:
+      showDate(now);
+      break;
+    case Mode::EditTime:
+      editTime(now);
+      break;
+    case Mode::ShowTemperature:
+      if (isFarengeightFormat)
+        showSensorValue((int)aht20.getTemperature() * 1.8 + 32, SYMBOL_FARENGEIGHT);
+      else
+        showSensorValue((int)aht20.getTemperature(), SYMBOL_CELSIUS);
+      break;
+    case Mode::ShowHumidity:
       showSensorValue((int)aht20.getHumidity(), SYMBOL_PERCENTAGE);
-      timingMode = millis();
-    }
-    break;
-  case Mode::ShowPressure:
-    if (millis() - timingMode > 100) {
+      break;
+    case Mode::ShowPressure:
       showSensorValue((int)(bmp.readPressure() * 0.0075006375541921),
                       SYMBOL_HG);
-      timingMode = millis();
+      break;
     }
-    break;
+    timingMode = millis();
   }
 }

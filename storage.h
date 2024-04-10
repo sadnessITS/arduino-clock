@@ -23,14 +23,20 @@ namespace constants {
     const int SYMBOL_7 = 7;
     const int SYMBOL_8 = 8;
     const int SYMBOL_9 = 9;
-    const int SYMBOL_A = 10;
-    const int SYMBOL_P = 11;
-    const int SYMBOL_M = 12;
-    const int SYMBOL_CELSIUS = 13;
-    const int SYMBOL_PERCENTAGE = 14;
-    const int SYMBOL_HG = 15;
-    const int SYMBOL_CLEAR = 16;
 
+    const int FONT_SMALL = 10;
+
+    const int SYMBOL_A = 20;
+    const int SYMBOL_P = 21;
+    const int SYMBOL_M = 22;
+    const int SYMBOL_CELSIUS = 23;
+    const int SYMBOL_FARENGEIGHT = 24;
+    const int SYMBOL_PERCENTAGE = 25;
+    const int SYMBOL_HG = 26;
+    const int SYMBOL_CLEAR = 27;
+    const int SYMBOL_SLASH = 28;
+
+    const int FUNC_BTN = 8;
     const int CHANGE_MODE_BTN = 9;
     
     // const int BUZZER_PIN = 1;
@@ -39,7 +45,7 @@ namespace constants {
 
     const int CASCADE_SIZE = 4;
 
-    const uint8_t symbols[17][8] = 
+    const uint8_t symbols[29][8] = 
     {
         {
             0b11110000,
@@ -144,6 +150,106 @@ namespace constants {
         {
             0b00000000,
             0b00000000,
+            0b11100000,
+            0b10100000,
+            0b10100000,
+            0b10100000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b10000000,
+            0b10000000,
+            0b10000000,
+            0b10000000,
+            0b10000000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b00100000,
+            0b01000000,
+            0b10000000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b00100000,
+            0b11100000,
+            0b00100000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b10100000,
+            0b10100000,
+            0b11100000,
+            0b00100000,
+            0b00100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b10000000,
+            0b11100000,
+            0b00100000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b10000000,
+            0b11100000,
+            0b10100000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b00100000,
+            0b01000000,
+            0b10000000,
+            0b10000000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b10100000,
+            0b11100000,
+            0b10100000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b11100000,
+            0b10100000,
+            0b11100000,
+            0b00100000,
+            0b11100000,
+            0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
             0b00000000,
             0b01000000,
             0b10100000,
@@ -183,6 +289,16 @@ namespace constants {
         },
         {
             0b01000000,
+            0b10100000,
+            0b01001110,
+            0b00001000,
+            0b00001100,
+            0b00001000,
+            0b00001000,
+            0b00000000
+        },
+        {
+            0b01000000,
             0b10100100,
             0b01001000,
             0b00010000,
@@ -210,17 +326,29 @@ namespace constants {
             0b00000000,
             0b00000000,
             0b00000000
+        },
+        {
+            0b00000000,
+            0b00000000,
+            0b00000000,
+            0b00100000,
+            0b01000000,
+            0b10000000,
+            0b00000000,
+            0b00000000
         }
     };
 }
 
-enum Mode { ShowTime12H, ShowTime24H, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
+enum Mode { ShowTime, ShowDate, EditTime, ShowTemperature, ShowHumidity, ShowPressure };
 enum EditedPart { Hours, Minutes, HalfOfDay };
 
 namespace timings {
     extern unsigned long timingMode;
+    extern unsigned long timingEditTime;
     extern unsigned long timingBrightness;
     extern unsigned long timingChangeModeButton;
+    extern unsigned long timingFuncButton;
 }
 
 namespace brightness {
@@ -242,7 +370,10 @@ namespace objects {
 }
 
 namespace flags {
-    extern int changeModeFlag;
+    extern bool is24HFormat;
+    extern bool isFarengeightFormat;
+    extern int funcBtnFlag;
+    extern int changeModeBtnFlag;
 }
 
 #endif

@@ -9,7 +9,7 @@ void configureMatrix() {
   matrix_cascade.setRotation(2);
 }
 
-void showTime12H(DateTime time) {
+void showTime12H(DateTime time, bool isBlink) {
   using namespace constants;
   using objects::matrix_cascade;
   uint8_t *symbol_f;
@@ -45,7 +45,7 @@ void showTime12H(DateTime time) {
   if (countDigitMinutes == 1) {
     uint8_t *min_d1 = copyArray(symbols[SYMBOL_0]);
     shiftToRightArray(min_d1, 3);
-    setColon(time, min_d1, 6);
+    setColon(time, min_d1, 6, isBlink);
     matrix_cascade[1].set(min_d1);
     uint8_t *min_d2 = copyArray(symbols[time.minute()]);
     uint8_t *matrix_2 = mergeArray(min_d2, symbol_f);
@@ -61,7 +61,7 @@ void showTime12H(DateTime time) {
       shift_count = 5;
     uint8_t *min_d1 = copyArray(symbols[min_d1_index]);
     shiftToRightArray(min_d1, shift_count);
-    setColon(time, min_d1, 6);
+    setColon(time, min_d1, 6, isBlink);
     matrix_cascade[1].set(min_d1);
     uint8_t *min_d2 = copyArray(symbols[time.minute() % 10]);
     uint8_t *matrix_2 = mergeArray(min_d2, symbol_f);
@@ -77,7 +77,7 @@ void showTime12H(DateTime time) {
   delete symbol_m;
 }
 
-void showTime24H(DateTime time) {
+void showTime24H(DateTime time, bool isBlink) {
   using namespace constants;
   using objects::matrix_cascade;
   int countDigitHours = 1;
@@ -91,7 +91,7 @@ void showTime24H(DateTime time) {
     uint8_t *hour_d1 = copyArray(symbols[SYMBOL_0]);
     shiftToRightArray(hour_d1, 3);
     uint8_t *hour_d2 = copyArray(symbols[time.hour()]);
-    setColon(time, hour_d2, 0);
+    setColon(time, hour_d2, 0, isBlink);
     matrix_cascade[0].set(hour_d1);
     matrix_cascade[1].set(hour_d2);
     delete hour_d1;
@@ -104,7 +104,7 @@ void showTime24H(DateTime time) {
     uint8_t *hour_d1 = copyArray(symbols[hour_d1_index]);
     shiftToRightArray(hour_d1, shift_count);
     uint8_t *hour_d2 = copyArray(symbols[time.hour() % 10]);
-    setColon(time, hour_d2, 0);
+    setColon(time, hour_d2, 0, isBlink);
     matrix_cascade[0].set(hour_d1);
     matrix_cascade[1].set(hour_d2);
     delete hour_d1;
@@ -212,32 +212,127 @@ void showSensorValue(int value, int unit) {
   delete unit_symbol;
 }
 
-void changeMode() {
-  using enums::mode;
+void showDate(DateTime time) {
+  using namespace constants;
+  using objects::matrix_cascade;
 
-  switch (mode) {
-  case Mode::ShowTime12H:
-    mode = Mode::ShowTime24H;
-    break;
-  case Mode::ShowTime24H:
-    mode = Mode::ShowTemperature;
-    break;
-  case Mode::ShowTemperature:
-    mode = Mode::ShowHumidity;
-    break;
-  case Mode::ShowHumidity:
-    mode = Mode::ShowPressure;
-    break;
-  case Mode::ShowPressure:
-    mode = Mode::ShowTime12H;
-    break;
+  int countDigit = 1;
+  if (time.month() >= 10 && time.month() < 100)
+    countDigit = 2;
+
+  switch (countDigit) {
+  case 1: {
+    uint8_t *digit_d1 = copyArray(symbols[SYMBOL_0 + FONT_SMALL]);
+    shiftToRightArray(digit_d1, 1);
+    uint8_t *digit_d2 = copyArray(symbols[time.month() + 10]);
+    shiftToRightArray(digit_d2, 5);
+    uint8_t *matrix = mergeArray(digit_d1, digit_d2);
+    matrix_cascade[0].set(matrix);
+
+    delete digit_d1;
+    delete digit_d2;
+    delete matrix;
+  } break;
+  case 2: {
+    uint8_t *digit_d1 = copyArray(symbols[(time.month() / 10) + 10]);
+    shiftToRightArray(digit_d1, 1);
+    uint8_t *digit_d2 = copyArray(symbols[(time.month() % 10) + 10]);
+    shiftToRightArray(digit_d2, 5);
+    uint8_t *matrix = mergeArray(digit_d1, digit_d2);
+    matrix_cascade[0].set(matrix);
+
+    delete digit_d1;
+    delete digit_d2;
+    delete matrix;
+  } break;
+  }
+
+  countDigit = 1;
+  if (time.day() >= 10 && time.day() < 100)
+    countDigit = 2;
+
+  switch (countDigit) {
+  case 1: {
+    uint8_t *digit_d1 = copyArray(symbols[SYMBOL_0 + FONT_SMALL]);
+    shiftToRightArray(digit_d1, 5);
+    uint8_t *slash = copyArray(symbols[SYMBOL_SLASH]);
+    shiftToRightArray(slash, 1);
+    uint8_t *matrix = mergeArray(digit_d1, slash);
+    matrix_cascade[1].set(matrix);
+
+    uint8_t *digit_d2 = copyArray(symbols[time.day() + FONT_SMALL]);
+    shiftToRightArray(digit_d2, 1);
+    matrix_cascade[2].set(digit_d2);
+
+    delete digit_d1;
+    delete digit_d2;
+    delete slash;
+    delete matrix;
+  } break;
+  case 2: {
+    int digit_1 = time.day() / 10;
+    int shift = 5;
+    if (digit_1 == 1)
+      shift = 7;
+
+    uint8_t *digit_d1 = copyArray(symbols[digit_1 + FONT_SMALL]);
+    shiftToRightArray(digit_d1, shift);
+    uint8_t *slash = copyArray(symbols[SYMBOL_SLASH]);
+    shiftToRightArray(slash, 1);
+    uint8_t *matrix = mergeArray(digit_d1, slash);
+    matrix_cascade[1].set(matrix);
+
+    uint8_t *digit_d2 = copyArray(symbols[time.day() % 10 + FONT_SMALL]);
+    shiftToRightArray(digit_d2, 1);
+    matrix_cascade[2].set(digit_d2);
+
+    delete digit_d1;
+    delete digit_d2;
+    delete slash;
+    delete matrix;
+  } break;
+  }
+
+  countDigit = 1;
+  if (time.year() % 100 >= 10 && time.year() % 100 < 100)
+    countDigit = 2;
+
+  switch (countDigit) {
+  case 1: {
+    uint8_t *digit_d1 = copyArray(symbols[SYMBOL_0 + FONT_SMALL]);
+    uint8_t *digit_d2 = copyArray(symbols[time.year() % 100 + FONT_SMALL]);
+    shiftToRightArray(digit_d2, 4);
+    uint8_t *matrix = mergeArray(digit_d1, digit_d2);
+    matrix_cascade[3].set(matrix);
+
+    delete digit_d1;
+    delete digit_d2;
+    delete matrix;
+  } break;
+  case 2: {
+    uint8_t *digit_d1 = copyArray(symbols[(time.year() % 100) / 10 + FONT_SMALL]);
+    uint8_t *digit_d2 = copyArray(symbols[(time.year() % 100) % 10 + FONT_SMALL]);
+    shiftToRightArray(digit_d2, 4);
+    uint8_t *matrix = mergeArray(digit_d1, digit_d2);
+    matrix_cascade[3].set(matrix);
+
+    delete digit_d1;
+    delete digit_d2;
+    delete matrix;
+  } break;
   }
 }
 
 void editTime(DateTime time) {
-  showTime24H(time);
-  while (true) {
-  }
+  
+  // while (true) {
+  //   if (millis() - timingEditTime > 100) {
+  //     showTime24H(time, false);
+  //     //blinkDigit(pos 0..4)
+
+  //     timingEditTime = millis();
+  //   }
+  // }
 }
 
 void blinkDigit(int matrix_number, int shift_number, int digit) {

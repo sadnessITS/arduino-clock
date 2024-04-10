@@ -3,8 +3,10 @@
 
 namespace timings {
   unsigned long timingMode = 0;
+  unsigned long timingEditTime = 0;
   unsigned long timingBrightness = 0;
   unsigned long timingChangeModeButton = 0;
+  unsigned long timingFuncButton = 0;
 }
 
 namespace brightness {
@@ -13,7 +15,7 @@ namespace brightness {
 }
 
 namespace enums {
-  Mode mode = Mode::ShowTime12H;
+  Mode mode = Mode::ShowTime;
   EditedPart edited_part = EditedPart::Hours;
 }
 
@@ -26,5 +28,8 @@ namespace objects {
 }
 
 namespace flags {
-    int changeModeFlag = 0;
+    bool is24HFormat = false;
+    bool isFarengeightFormat = false;
+    int funcBtnFlag = 0;
+    int changeModeBtnFlag = 0;
 }
